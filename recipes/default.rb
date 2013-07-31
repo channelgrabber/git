@@ -18,7 +18,11 @@
 
 case node['platform_family']
 when "debian"
-  package "git-core"
+  if node['platform'] == "ubuntu" && node['platform_version'].to_f < 10.10
+    package "git-core"
+  else
+    package "git"
+  end
 when "rhel","fedora"
   case node['platform_version'].to_i
   when 5
@@ -26,12 +30,7 @@ when "rhel","fedora"
   end
   package "git"
 when "windows"
-  windows_package "git" do
-    source node['git']['url']
-    checksum node['git']['checksum']
-    action :install
-    not_if { File.exists? 'C:\Program Files (x86)\Git\bin\git.exe' }
-  end
+  include_recipe 'git::windows'
 when "mac_os_x"
   dmg_package "GitOSX-Installer" do
     app node['git']['osx_dmg']['app_name']
